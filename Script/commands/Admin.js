@@ -1,43 +1,45 @@
 const axios = require("axios");
-const request = require("request");
 const fs = require("fs-extra");
 const moment = require("moment-timezone");
 
 module.exports.config = {
- name: "admin",
- version: "1.0.0",
- hasPermssion: 0,
- credits: "SHAHADAT SAHU",
- description: "Show Owner Info",
- commandCategory: "info",
- usages: "admin",
- cooldowns: 2
+  name: "admin",
+  version: "1.0.0",
+  hasPermission: 0,
+  credits: "SHAHADAT SAHU",
+  description: "Show Owner Info",
+  commandCategory: "info",
+  usages: "admin",
+  cooldowns: 2
 };
 
-module.exports.run = async function({ api, event }) {
- const time = moment().tz("Asia/Dhaka").format("DD/MM/YYYY hh:mm:ss A");
+module.exports.run = async function ({ api, event }) {
+  const time = moment().tz("Asia/Dhaka").format("DD/MM/YYYY hh:mm:ss A");
 
- const callback = () => api.sendMessage({
- body: `
+  const cachePath = __dirname + "/cache/owner.jpg";
+  fs.ensureDirSync(__dirname + "/cache");
+
+  const callback = () =>
+    api.sendMessage(
+      {
+        body: `
 ┌───────────────⭓
 │ 𝗢𝗪𝗡𝗘𝗥 𝗗𝗘𝗧𝗔𝗜𝗟𝗦
 ├───────────────
 │ 👤 𝐍𝐚𝐦𝐞 : Ariyan khan 
-│ 🚹 𝐆𝐞𝐧𝐝𝐞𝐫 : 𝐌𝐚𝐥𝐞
-│ ❤️ 𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧 : mingel 
-│ 🎂 𝐀𝐠𝐞 : 𝟏𝟖+
-│ 🕌 𝐑𝐞𝐥𝐢𝐠𝐢𝐨𝐧 : 𝐈𝐬𝐥𝐚𝐦
-│ 🎓 𝐄𝐝𝐮𝐜𝐚𝐭𝐢𝐨𝐧 : 𝐇𝐒𝐂 (2027)
-│ 🏡 𝐀𝐝𝐝𝐫𝐞𝐬𝐬 : Mymensingh 
+│ 🚹 𝐆𝐞𝐧𝐝𝐞𝐫 : Male
+│ ❤️ 𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧 : Single
+│ 🎂 𝐀𝐠𝐞 : 18+
+│ 🕌 𝐑𝐞𝐥𝐢𝐠𝐢𝐨𝐧 : Islam
+│ 🎓 𝐄𝐝𝐮𝐜𝐚𝐭𝐢𝐨𝐧 : HSC (2027)
+│ 🏡 𝐀𝐝𝐝𝐫𝐞𝐬𝐬 : Mymensingh
 └───────────────⭓
 
 ┌───────────────⭓
 │ 𝗖𝗢𝗡𝗧𝗔𝗖𝗧 𝗟𝗜𝗡𝗞𝗦
 ├───────────────
-│ 📘 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸:
+│ 📘 Facebook:
 │ https://www.facebook.com/profile.php?id=61551510743576
-│ 
- 
 └───────────────⭓
 
 ┌───────────────⭓
@@ -45,11 +47,27 @@ module.exports.run = async function({ api, event }) {
 ├───────────────
 │ ${time}
 └───────────────⭓
- `,
- attachment: fs.createReadStream(__dirname + "/cache/owner.jpg")
- }, event.threadID, () => fs.unlinkSync(__dirname + "/cache/owner.jpg"));
+        `,
+        attachment: fs.createReadStream(cachePath)
+      },
+      event.threadID,
+      () => {
+        if (fs.existsSync(cachePath)) {
+          fs.unlinkSync(cachePath);
+        }
+      }
+    );
 
- return request("https://i.imgur.com/idyXtoO.jpeg")
- .pipe(fs.createWriteStream(__dirname + '/cache/owner.jpg'))
- .on('close', () => callback());
+  try {
+    const response = await axios({
+      url: "https://i.imgur.com/idyXtoO.jpeg",
+      method: "GET",
+      responseType: "stream"
+    });
+
+    response.data.pipe(fs.createWriteStream(cachePath)).on("close", callback);
+  } catch (err) {
+    console.log("Image download error:", err);
+    api.sendMessage("❌ Image load fail hoise!", event.threadID);
+  }
 };
