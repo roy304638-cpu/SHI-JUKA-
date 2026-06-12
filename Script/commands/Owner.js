@@ -3,10 +3,10 @@ const fs = require("fs-extra");
 
 module.exports.config = {
   name: "owner",
-  version: "1.0.1",
+  version: "2.0.1",
   hasPermssion: 0,
   credits: "SHAHADAT SAHU",
-  description: "Show Owner Info with styled box & random photo",
+  description: "Show Owner Info",
   commandCategory: "Information",
   usages: "owner",
   cooldowns: 2
@@ -14,24 +14,22 @@ module.exports.config = {
 
 module.exports.run = async function ({ api, event }) {
 
-  
+  fs.ensureDirSync(__dirname + "/cache");
+
   const info = `
 ╔═════════════════════ ✿
 ║ ✨ 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢 ✨
 ╠═════════════════════ ✿
-║ 👑 𝗡𝗮𝗺𝗲 : Ariyan khan 
-║ 🧸 𝗡𝗶𝗰𝗸 𝗡𝗮𝗺𝗲 : Ariyan 
-║ 🎂 𝗔𝗴𝗲 : 𝟭𝟴+
-║ 💘 𝗥𝗲𝗹𝗮𝘁𝗶𝗼𝗻 : 𝗦𝗶𝗻𝗴𝗹𝗲
-║ 🎓 𝗣𝗿𝗼𝗳𝗲𝘀𝘀𝗶𝗼𝗻 : 𝗦𝘁𝘂𝗱𝗲𝗻𝘁
-║ 📚 𝗘𝗱𝘂𝗰𝗮𝘁𝗶𝗼𝗻 : 𝗛𝗦𝗖
-║ 🏡 𝗔𝗱𝗱𝗿𝗲𝘀𝘀 : Mymensingh 
+║ 👑 𝗡𝗮𝗺𝗲 : Ariyan Khan
+║ 🧸 𝗡𝗶𝗰𝗸 𝗡𝗮𝗺𝗲 : Ariyan
+║ 🎂 𝗔𝗴𝗲 : 18+
+║ 💘 𝗥𝗲𝗹𝗮𝘁𝗶𝗼𝗻 : Single
+║ 🎓 𝗘𝗱𝘂𝗰𝗮𝘁𝗶𝗼𝗻 : HSC
+║ 🏡 𝗔𝗱𝗱𝗿𝗲𝘀𝘀 : Mymensingh
 ╠═════════════════════ ✿
-║ 🔗 𝗖𝗢𝗡𝗧𝗔𝗖𝗧 𝗟𝗜𝗡𝗞𝗦
-╠═════════════════════ ✿
-║ 📘 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 
-https://www.facebook.com/profile.php?id=61551510743576
-
+║ 🔗 𝗖𝗢𝗡𝗧𝗔𝗖𝗧
+║ 📘 Facebook:
+║ https://www.facebook.com/profile.php?id=61551510743576
 ╚═════════════════════ ✿
 `;
 
@@ -43,17 +41,31 @@ https://www.facebook.com/profile.php?id=61551510743576
   ];
 
   const randomImg = images[Math.floor(Math.random() * images.length)];
+  const path = __dirname + "/cache/owner.jpg";
 
-  const callback = () => api.sendMessage(
-    {
-      body: info,
-      attachment: fs.createReadStream(__dirname + "/cache/owner.jpg")
-    },
-    event.threadID,
-    () => fs.unlinkSync(__dirname + "/cache/owner.jpg")
-  );
+  const callback = () =>
+    api.sendMessage(
+      {
+        body: info,
+        attachment: fs.createReadStream(path)
+      },
+      event.threadID,
+      () => {
+        if (fs.existsSync(path)) {
+          fs.unlinkSync(path);
+        }
+      }
+    );
 
-  return request(encodeURI(randomImg))
-    .pipe(fs.createWriteStream(__dirname + "/cache/owner.jpg"))
-    .on("close", () => callback());
+  try {
+    request(encodeURI(randomImg))
+      .pipe(fs.createWriteStream(path))
+      .on("close", callback)
+      .on("error", (err) => {
+        console.log(err);
+        api.sendMessage("❌ Image load fail hoise!", event.threadID);
+      });
+  } catch (e) {
+    console.log(e);
+  }
 };
