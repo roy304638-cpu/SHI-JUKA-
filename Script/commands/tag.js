@@ -3,29 +3,26 @@ module.exports.config = {
  version: "1.0.0",
  hasPermssion: 2,
  credits: "Shahadat Islam",
- description: "Group এ সবাইকে নির্দিষ্ট সংখ্যায় মেনশন পাঠানো",
+ description: "Group এ সবাইকে মেনশন পাঠানো",
  commandCategory: "group",
- usages: "/tag [everyone]",
+ usages: "/tag",
  cooldowns: 2
 };
 
-module.exports.run = async ({ api, event, args }) => {
+module.exports.run = async ({ api, event }) => {
  const threadID = event.threadID;
  const threadInfo = await api.getThreadInfo(threadID);
  const memberIDs = threadInfo.participantIDs;
 
- const repeatCount = parseInt(args[0]) || 1;
-
  const mentions = memberIDs
  .filter(id => id != api.getCurrentUserID())
- .map(id => ({ tag: "@everyone", id }));
+ .map(id => ({
+   tag: "@user",
+   id
+ }));
 
- for (let i = 0; i < repeatCount; i++) {
  await api.sendMessage({
- body: `📢 @everyone\nসবাই চিপা থেকে বের হও 🐸`,
- mentions
+   body: `📢 সবাইকে মেনশন করা হয়েছে!\n👑 Owner : Ariyan`,
+   mentions
  }, threadID);
-
- await new Promise(resolve => setTimeout(resolve, 2000)); 
- }
 };
